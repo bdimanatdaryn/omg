@@ -1,9 +1,3 @@
-x=5
-y=3.2
-z=5j
-a=float(x)
-b=int(y)
-c=complex(y)
-print(a)
-print(b)
-print(c)
+n=int(input())
+for n in range (1,n,1):
+    
