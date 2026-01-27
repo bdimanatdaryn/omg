@@ -1,3 +1,9 @@
-#1
-a=float(input())
+x=5
+y=3.2
+z=5j
+a=float(x)
+b=int(y)
+c=complex(y)
 print(a)
+print(b)
+print(c)
