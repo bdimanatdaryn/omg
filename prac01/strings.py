@@ -6,7 +6,7 @@ s=str("very1234")
 for x in range(len(s)):
     print(s[x],end=" ")
 #3 example
-text="He is so cool"
+text="She is so cool"
 if "cool" in text:
     print("True")
 
