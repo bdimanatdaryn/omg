@@ -10,10 +10,10 @@ conn=psycopg2.connect(
 cur=conn.cursor()
 
 cur.execute("""
-    CREATE TABLE elif NOT EXISTS phonebook(
+    CREATE TABLE if NOT EXISTS phonebook(
         id SERIAL PRIMARY KEY,
         name VARCHAR(100),
-        phone VARCHAR(20)
+        phone VARCHAR(20)   
 )
 """)
 
