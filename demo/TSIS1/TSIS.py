@@ -206,20 +206,39 @@ def delete_contact():
 
 def insert_from_csv(filepath: str):
     sql = """
-    INSERT INTO phonebook (name, phone)
-    VALUES (%s, %s)
-    ON CONFLICT (phone) DO UPDATE SET name = EXCLUDED.name;
+    INSERT INTO phonebook (name, phone, email, birthday, group_id)
+    VALUES (%s, %s, %s, %s, %s)
+    ON CONFLICT (phone) DO UPDATE 
+    SET name = EXCLUDED.name,
+        email = EXCLUDED.email,
+        birthday = EXCLUDED.birthday,
+        group_id = EXCLUDED.group_id;
     """
-    inserted = 0
+
+    rows = []
+
     with open(filepath, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
-        rows = [(row["name"].strip(), row["phone"].strip(), row["email"].strip()) for row in reader]
-        cur.executemany(sql, rows)
-        inserted = cur.rowcount
-        conn.commit()
-    print(f"Inserted/updated {inserted} record(s) from '{filepath}'.")
 
-#MENU
+        for row in reader:
+            # Получаем group_id (создаёт группу если нет)
+            gid = get_group_id(row["group"].strip())
+
+            # Добавляем данные
+            rows.append((
+                row["name"].strip(),
+                row["phone"].strip(),
+                row.get("email", "").strip(),
+                row.get("birthday", "").strip(),
+                gid
+            ))
+
+    cur.executemany(sql, rows)
+    conn.commit()
+
+    print(f"Inserted/updated {len(rows)} record(s) from '{filepath}'.")
+
+# MENU
 def menu():
     while True:
         print("""
