@@ -51,8 +51,8 @@ tool_buttons = [
     (pygame.Rect(390, 60, 90, 30), "rectangle"),
     (pygame.Rect(485, 60, 90, 30), "circle"),
     (pygame.Rect(580, 60, 90, 30), "square"),
-    (pygame.Rect(675, 60, 90, 30), "right_triangle"),
-    (pygame.Rect(770, 60, 90, 30), "equilateral_triangle"),
+    (pygame.Rect(675, 60, 90, 30), "right_tri"),
+    (pygame.Rect(770, 60, 90, 30), "triangle"),
     (pygame.Rect(865, 60, 90, 30), "rhombus"),
 ]
 

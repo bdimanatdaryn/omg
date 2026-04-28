@@ -1,14 +1,9 @@
 import csv
 import psycopg2
 import json
+from connect import get_connection
 
-conn=psycopg2.connect(
-    host="localhost",
-    database="phonebook_db",
-    user="postgres",
-    password="2008"
-)
-
+conn = get_connection()
 cur = conn.cursor()
 
 #HELPER: GET OR CREATE GROUP
