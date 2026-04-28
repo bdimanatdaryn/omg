@@ -1,0 +1,30 @@
+[
+    {
+        "name": "Vadim",
+        "phone": "87056674023",
+        "email": "vadim@gmail.com",
+        "birthday": "2007-06-06",
+        "group": "Friends"
+    },
+    {
+        "name": "Alina",
+        "phone": "87479876543",
+        "email": null,
+        "birthday": "None",
+        "group": null
+    },
+    {
+        "name": "Damir",
+        "phone": "87015554433",
+        "email": null,
+        "birthday": "None",
+        "group": null
+    },
+    {
+        "name": "John Doe",
+        "phone": "87770001122",
+        "email": null,
+        "birthday": "None",
+        "group": null
+    }
+]

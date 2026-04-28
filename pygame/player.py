@@ -45,7 +45,7 @@ while run:
                 play()
 
             if event.key == pygame.K_q:
-                running = False
+                run = False
 
     pygame.display.update()
 
