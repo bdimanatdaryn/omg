@@ -76,6 +76,14 @@ def filter_group():
     for row in cur.fetchall():
         print(row)
 
+#MOVE TO GROUP
+def move_to_group():
+    name = input("Name: ")
+    group = input("New group: ")
+
+    cur.execute("CALL move_to_group(%s, %s)", (name, group))
+    conn.commit()
+    print("Moved!")
 
 #SEARCH
 def search():
@@ -113,11 +121,7 @@ def paginate():
     offset = 0
 
     while True:
-        cur.execute("""
-            SELECT name, phone, email
-            FROM phonebook
-            LIMIT %s OFFSET %s
-        """, (limit, offset))
+        cur.execute("SELECT * FROM get_contacts_paginated(%s, %s)", (limit, offset))
 
         rows = cur.fetchall()
 
@@ -247,6 +251,7 @@ def menu():
 8 Import JSON
 9 Delete Contact
 10 import from csv
+11 move to group
 0 Exit
 """)
 
@@ -273,6 +278,8 @@ def menu():
         elif ch == "10":
             filepath = input("Enter CSV file path: ")
             insert_from_csv(filepath)
+        elif ch == "11":
+            move_to_group
         else:
             break
 

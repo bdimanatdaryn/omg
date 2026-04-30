@@ -1,30 +1,37 @@
 [
     {
-        "name": "Vadim",
-        "phone": "87056674023",
-        "email": "vadim@gmail.com",
-        "birthday": "2007-06-06",
+        "name": "Daryn",
+        "phone": "87071234567",
+        "email": "Daryn@example.com",
+        "birthday": "2000-01-01",
         "group": "Friends"
     },
     {
         "name": "Alina",
         "phone": "87479876543",
-        "email": null,
-        "birthday": "None",
-        "group": null
+        "email": "alina@mail.ru",
+        "birthday": "1999-05-15",
+        "group": "Work"
     },
     {
         "name": "Damir",
         "phone": "87015554433",
-        "email": null,
-        "birthday": "None",
-        "group": null
+        "email": "damir@gmail.com",
+        "birthday": "2001-10-10",
+        "group": "Family"
     },
     {
         "name": "John Doe",
         "phone": "87770001122",
-        "email": null,
-        "birthday": "None",
-        "group": null
+        "email": "john@provider.net",
+        "birthday": "1990-12-31",
+        "group": "Otherne"
+    },
+    {
+        "name": "Adai",
+        "phone": "87004005579",
+        "email": "adaimen@gmail.com",
+        "birthday": "2008-06-12",
+        "group": "Friends"
     }
 ]
