@@ -91,7 +91,6 @@ def get_personal_best(username):
         return 0
 
 
-
 # SETTINGS JSON
 
 SETTINGS_FILE = "settings.json"
@@ -219,7 +218,6 @@ def draw_grid():
         pygame.draw.line(screen, (40, 40, 40), (0, y), (FIELD_WIDTH, y))
 
 
-
 # BUTTON
 
 class Button:
@@ -230,14 +228,15 @@ class Button:
     def draw(self):
         pygame.draw.rect(screen, GRAY, self.rect, border_radius=10)
         pygame.draw.rect(screen, WHITE, self.rect, 2, border_radius=10)
+
         text_surface = font_medium.render(self.text, True, BLACK)
         text_x = self.rect.x + (self.rect.w - text_surface.get_width()) // 2
         text_y = self.rect.y + (self.rect.h - text_surface.get_height()) // 2
+
         screen.blit(text_surface, (text_x, text_y))
 
     def is_clicked(self, event):
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.rect.collidepoint(event.pos)
-
 
 
 # SPRITES
@@ -245,8 +244,10 @@ class Button:
 class SnakeSegment(pygame.sprite.Sprite):
     def __init__(self, grid_x, grid_y, color):
         super().__init__()
+
         self.image = pygame.Surface((SIZE, SIZE))
         self.image.fill(color)
+
         self.rect = self.image.get_rect()
         self.rect.x = field_to_screen_x(grid_x)
         self.rect.y = field_to_screen_y(grid_y)
@@ -263,14 +264,17 @@ class SnakeSegment(pygame.sprite.Sprite):
 class Food(pygame.sprite.Sprite):
     def __init__(self, color):
         super().__init__()
+
         self.image = pygame.Surface((SIZE, SIZE))
         self.image.fill(color)
+
         self.rect = self.image.get_rect()
 
     def spawn(self, forbidden_positions):
         while True:
             x = random.randint(0, COLS - 1)
             y = random.randint(0, ROWS - 1)
+
             if (x, y) not in forbidden_positions:
                 self.rect.x = field_to_screen_x(x)
                 self.rect.y = field_to_screen_y(y)
@@ -314,8 +318,10 @@ class PoisonFood(Food):
 class PowerUp(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
+
         self.image = pygame.Surface((SIZE, SIZE))
         self.rect = self.image.get_rect()
+
         self.active = False
         self.kind = None
         self.spawn_time = 0
@@ -335,6 +341,7 @@ class PowerUp(pygame.sprite.Sprite):
         while True:
             x = random.randint(0, COLS - 1)
             y = random.randint(0, ROWS - 1)
+
             if (x, y) not in forbidden_positions:
                 self.rect.x = field_to_screen_x(x)
                 self.rect.y = field_to_screen_y(y)
@@ -360,8 +367,10 @@ class PowerUp(pygame.sprite.Sprite):
 class ObstacleBlock(pygame.sprite.Sprite):
     def __init__(self, grid_x, grid_y):
         super().__init__()
+
         self.image = pygame.Surface((SIZE, SIZE))
         self.image.fill(WALL_COLOR)
+
         self.rect = self.image.get_rect()
         self.rect.x = field_to_screen_x(grid_x)
         self.rect.y = field_to_screen_y(grid_y)
@@ -375,20 +384,23 @@ class ObstacleBlock(pygame.sprite.Sprite):
         return (self.rect.y - TOP_AREA) // SIZE
 
 
-
 # HELPERS
 
 def get_snake_positions(snake_list):
     positions = []
+
     for segment in snake_list:
         positions.append((segment.grid_x, segment.grid_y))
+
     return positions
 
 
 def get_obstacle_positions(obstacles):
     positions = set()
+
     for block in obstacles:
         positions.add((block.grid_x, block.grid_y))
+
     return positions
 
 
@@ -410,6 +422,62 @@ def get_forbidden_positions(snake, obstacles, food, super_food, poison_food, pow
     return positions
 
 
+def cell_has_obstacle(x, y, obstacles):
+    for block in obstacles:
+        if block.grid_x == x and block.grid_y == y:
+            return True
+
+    return False
+
+
+def cell_has_snake_body(x, y, snake):
+    for part in snake[1:]:
+        if part.grid_x == x and part.grid_y == y:
+            return True
+
+    return False
+
+
+def is_safe_cell(x, y, snake, obstacles):
+    if x < 0 or x >= COLS or y < 0 or y >= ROWS:
+        return False
+
+    if cell_has_obstacle(x, y, obstacles):
+        return False
+
+    if cell_has_snake_body(x, y, snake):
+        return False
+
+    return True
+
+
+def find_safe_direction(head, snake, obstacles, current_dx, current_dy):
+    directions = [
+        (current_dy, -current_dx),
+        (-current_dy, current_dx),
+        (-current_dx, -current_dy),
+        (0, -1),
+        (0, 1),
+        (-1, 0),
+        (1, 0)
+    ]
+
+    checked = []
+
+    for direction in directions:
+        if direction not in checked and direction != (0, 0):
+            checked.append(direction)
+
+    for ndx, ndy in checked:
+        nx = head.grid_x + ndx
+        ny = head.grid_y + ndy
+
+        if is_safe_cell(nx, ny, snake, obstacles):
+            return ndx, ndy
+
+    return None
+
+
 def generate_obstacles(level, snake):
     obstacle_group = pygame.sprite.Group()
 
@@ -417,6 +485,7 @@ def generate_obstacles(level, snake):
         return obstacle_group
 
     obstacle_count = min(4 + (level - 3) * 2, 20)
+
     snake_head = snake[0]
     snake_positions = set(get_snake_positions(snake))
 
@@ -426,12 +495,15 @@ def generate_obstacles(level, snake):
         for dy in [-1, 0, 1]:
             nx = snake_head.grid_x + dx
             ny = snake_head.grid_y + dy
+
             if 0 <= nx < COLS and 0 <= ny < ROWS:
                 forbidden.add((nx, ny))
 
     tries = 0
+
     while len(obstacle_group) < obstacle_count and tries < 2000:
         tries += 1
+
         x = random.randint(0, COLS - 1)
         y = random.randint(0, ROWS - 1)
 
@@ -439,6 +511,7 @@ def generate_obstacles(level, snake):
             continue
 
         already = False
+
         for block in obstacle_group:
             if block.grid_x == x and block.grid_y == y:
                 already = True
@@ -450,7 +523,6 @@ def generate_obstacles(level, snake):
         obstacle_group.add(ObstacleBlock(x, y))
 
     return obstacle_group
-
 
 
 # SETTINGS SCREEN
@@ -471,6 +543,7 @@ def settings_screen():
     btn_save = Button(180, 500, 240, 60, "Save & Back")
 
     color_index = 0
+
     for i, c in enumerate(COLOR_PRESETS):
         if list(c) == local_settings["snake_color"]:
             color_index = i
@@ -519,7 +592,6 @@ def settings_screen():
                 return
 
 
-
 # LEADERBOARD SCREEN
 
 def leaderboard_screen():
@@ -528,9 +600,11 @@ def leaderboard_screen():
 
     while True:
         screen.fill(BLACK)
+
         draw_centered_text("LEADERBOARD", font_big, YELLOW, 30)
 
         y = 100
+
         draw_text("Rank", font_small, WHITE, 20, y)
         draw_text("User", font_small, WHITE, 90, y)
         draw_text("Score", font_small, WHITE, 220, y)
@@ -543,6 +617,7 @@ def leaderboard_screen():
             draw_centered_text("No records yet", font_medium, RED, 250)
         else:
             rank = 1
+
             for row in top_scores:
                 username, score, level_reached, played_at = row
                 date_str = played_at.strftime("%Y-%m-%d")
@@ -557,14 +632,15 @@ def leaderboard_screen():
                 rank += 1
 
         btn_back.draw()
+
         pygame.display.flip()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
+
             if btn_back.is_clicked(event):
                 return
-
 
 
 # GAME OVER SCREEN
@@ -590,32 +666,37 @@ def game_over_screen(username, score, level, personal_best):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return "quit"
+
             if btn_retry.is_clicked(event):
                 return "retry"
+
             if btn_menu.is_clicked(event):
                 return "menu"
-
 
 
 # USERNAME SCREEN
 
 def username_input_screen():
     username = ""
+
     pygame.key.start_text_input()
 
     btn_back = Button(220, 520, 160, 50, "Back")
 
     while True:
         screen.fill(BLACK)
+
         draw_centered_text("ENTER USERNAME", font_big, YELLOW, 100)
 
         box = pygame.Rect(150, 250, 300, 50)
-        pygame.draw.rect(screen, WHITE, box, 2)
-        draw_text(username, font_medium, GREEN, 160, 258)
 
+        pygame.draw.rect(screen, WHITE, box, 2)
+
+        draw_text(username, font_medium, GREEN, 160, 258)
         draw_centered_text("Press ENTER to start", font_small, GRAY, 340)
 
         btn_back.draw()
+
         pygame.display.flip()
 
         for event in pygame.event.get():
@@ -630,6 +711,7 @@ def username_input_screen():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
                     username = username[:-1]
+
                 elif event.key == pygame.K_RETURN:
                     if username.strip() != "":
                         pygame.key.stop_text_input()
@@ -638,7 +720,6 @@ def username_input_screen():
             if btn_back.is_clicked(event):
                 pygame.key.stop_text_input()
                 return None
-
 
 
 # MAIN MENU
@@ -651,6 +732,7 @@ def main_menu():
 
     while True:
         screen.fill(BLACK)
+
         draw_centered_text("SNAKE GAME", font_big, YELLOW, 80)
 
         btn_play.draw()
@@ -666,6 +748,7 @@ def main_menu():
 
             if btn_play.is_clicked(event):
                 username = username_input_screen()
+
                 if username is not None:
                     return username
 
@@ -679,13 +762,13 @@ def main_menu():
                 return "quit"
 
 
-
 # GAME
 
 def run_game(username):
     snake_color = tuple(settings["snake_color"])
 
     snake = [SnakeSegment(10, 10, snake_color)]
+
     snake_group = pygame.sprite.Group()
     snake_group.add(snake[0])
 
@@ -711,16 +794,20 @@ def run_game(username):
     score = 0
     level = 1
     normal_food_eaten = 0
+
     personal_best = get_personal_best(username)
 
     shield_active = False
+
     speed_boost_active = False
     speed_boost_start = 0
+
     slow_motion_active = False
     slow_motion_start = 0
 
     while True:
         screen.fill(BLACK)
+
         dead = False
         now = pygame.time.get_ticks()
 
@@ -755,9 +842,20 @@ def run_game(username):
                         dx, dy = 1, 0
 
         if dead:
+            if shield_active:
+                shield_active = False
+
+                safe_direction = find_safe_direction(snake[0], snake, obstacles, dx, dy)
+
+                if safe_direction is not None:
+                    dx, dy = safe_direction
+                    continue
+
             save_result(username, score, level)
+
             if score > personal_best:
                 personal_best = score
+
             return game_over_screen(username, score, level, personal_best)
 
         if speed_boost_active and now - speed_boost_start > POWERUP_EFFECT_DURATION:
@@ -778,38 +876,48 @@ def run_game(username):
             powerup.spawn(forbidden)
 
         head = snake[0]
+
         new_x = head.grid_x + dx
         new_y = head.grid_y + dy
 
-        # border collision
+        # WALL COLLISION
         if new_x < 0 or new_x >= COLS or new_y < 0 or new_y >= ROWS:
             if shield_active:
                 shield_active = False
-                continue
-            else:
-                save_result(username, score, level)
-                if score > personal_best:
-                    personal_best = score
-                return game_over_screen(username, score, level, personal_best)
 
-        # obstacle collision
-        hit_obstacle = False
-        for block in obstacles:
-            if block.grid_x == new_x and block.grid_y == new_y:
-                hit_obstacle = True
-                break
+                safe_direction = find_safe_direction(head, snake, obstacles, dx, dy)
 
-        if hit_obstacle:
+                if safe_direction is not None:
+                    dx, dy = safe_direction
+                    continue
+
+            save_result(username, score, level)
+
+            if score > personal_best:
+                personal_best = score
+
+            return game_over_screen(username, score, level, personal_best)
+
+        # OBSTACLE COLLISION
+        if cell_has_obstacle(new_x, new_y, obstacles):
             if shield_active:
                 shield_active = False
-                continue
-            else:
-                save_result(username, score, level)
-                if score > personal_best:
-                    personal_best = score
-                return game_over_screen(username, score, level, personal_best)
+
+                safe_direction = find_safe_direction(head, snake, obstacles, dx, dy)
+
+                if safe_direction is not None:
+                    dx, dy = safe_direction
+                    continue
+
+            save_result(username, score, level)
+
+            if score > personal_best:
+                personal_best = score
+
+            return game_over_screen(username, score, level, personal_best)
 
         new_head = SnakeSegment(new_x, new_y, snake_color)
+
         snake.insert(0, new_head)
         snake_group.add(new_head)
 
@@ -844,16 +952,21 @@ def run_game(username):
             ate_something = True
             poison_food.active = False
 
-            for _ in range(2):
+            for i in range(2):
                 if len(snake) > 1:
                     tail = snake.pop()
                     snake_group.remove(tail)
 
             if len(snake) <= 1:
-                save_result(username, score, level)
-                if score > personal_best:
-                    personal_best = score
-                return game_over_screen(username, score, level, personal_best)
+                if shield_active:
+                    shield_active = False
+                else:
+                    save_result(username, score, level)
+
+                    if score > personal_best:
+                        personal_best = score
+
+                    return game_over_screen(username, score, level, personal_best)
 
         elif powerup.active and new_head.grid_x == powerup.grid_x and new_head.grid_y == powerup.grid_y:
             ate_something = True
@@ -861,25 +974,35 @@ def run_game(username):
             if powerup.kind == POWERUP_SPEED:
                 speed_boost_active = True
                 speed_boost_start = now
+
                 slow_motion_active = False
+                shield_active = False
 
             elif powerup.kind == POWERUP_SLOW:
                 slow_motion_active = True
                 slow_motion_start = now
+
                 speed_boost_active = False
+                shield_active = False
 
             elif powerup.kind == POWERUP_SHIELD:
                 shield_active = True
 
+                speed_boost_active = False
+                slow_motion_active = False
+
             powerup.active = False
             powerup.kind = None
 
-        if not ate_something:
-            tail = snake.pop()
-            snake_group.remove(tail)
+        removed_tail = None
 
-        # self collision
+        if not ate_something:
+            removed_tail = snake.pop()
+            snake_group.remove(removed_tail)
+
+        # SELF COLLISION
         hit_self = False
+
         for part in snake[1:]:
             if new_head.grid_x == part.grid_x and new_head.grid_y == part.grid_y:
                 hit_self = True
@@ -888,22 +1011,38 @@ def run_game(username):
         if hit_self:
             if shield_active:
                 shield_active = False
+
                 snake_group.remove(new_head)
                 snake.pop(0)
-            else:
-                save_result(username, score, level)
-                if score > personal_best:
-                    personal_best = score
-                return game_over_screen(username, score, level, personal_best)
+
+                if removed_tail is not None:
+                    snake.append(removed_tail)
+                    snake_group.add(removed_tail)
+
+                safe_direction = find_safe_direction(snake[0], snake, obstacles, dx, dy)
+
+                if safe_direction is not None:
+                    dx, dy = safe_direction
+                    continue
+
+            save_result(username, score, level)
+
+            if score > personal_best:
+                personal_best = score
+
+            return game_over_screen(username, score, level, personal_best)
 
         if score > personal_best:
             personal_best = score
 
         current_speed = START_SPEED + (level - 1)
+
         if speed_boost_active:
             current_speed += 4
+
         if slow_motion_active:
             current_speed -= 3
+
         if current_speed < 3:
             current_speed = 3
 
@@ -943,7 +1082,6 @@ def run_game(username):
         clock.tick(current_speed)
 
 
-
 # MAIN
 
 def main():
@@ -962,8 +1100,10 @@ def main():
 
             if result == "retry":
                 continue
+
             elif result == "menu":
                 break
+
             elif result == "quit":
                 pygame.quit()
                 return

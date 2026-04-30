@@ -4,7 +4,6 @@ from datetime import datetime
 
 pygame.init()
 
-# цвета
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
@@ -12,7 +11,6 @@ WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
 BLUE = (150, 150, 255)
 
-# окно
 WIDTH, HEIGHT = 1000, 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Paint Advanced")
@@ -20,11 +18,9 @@ pygame.display.set_caption("Paint Advanced")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 18)
 
-# холст
 canvas = pygame.Surface((WIDTH, HEIGHT))
 canvas.fill(WHITE)
 
-# текущие настройки
 current_color = BLACK
 eraser_color = WHITE
 current_tool = "pencil"
@@ -34,7 +30,6 @@ start_pos = None
 prev_pos = None
 drawing = False
 
-# кнопки цветов
 color_buttons = [
     (pygame.Rect(10, 10, 40, 40), RED),
     (pygame.Rect(60, 10, 40, 40), BLACK),
@@ -42,7 +37,6 @@ color_buttons = [
     (pygame.Rect(160, 10, 40, 40), WHITE),
 ]
 
-# кнопки инструментов
 tool_buttons = [
     (pygame.Rect(10, 60, 90, 30), "pencil"),
     (pygame.Rect(105, 60, 90, 30), "line"),
@@ -51,17 +45,16 @@ tool_buttons = [
     (pygame.Rect(390, 60, 90, 30), "rectangle"),
     (pygame.Rect(485, 60, 90, 30), "circle"),
     (pygame.Rect(580, 60, 90, 30), "square"),
-    (pygame.Rect(675, 60, 90, 30), "right_tri"),
-    (pygame.Rect(770, 60, 90, 30), "triangle"),
+    (pygame.Rect(675, 60, 90, 30), "right_triangle"),
+    (pygame.Rect(770, 60, 90, 30), "equilateral_triangle"),
     (pygame.Rect(865, 60, 90, 30), "rhombus"),
+    (pygame.Rect(10, 100, 90, 30), "text"),
 ]
 
-# текст
 text_mode = False
 text_pos = None
 typed_text = ""
 
-# заливка
 def flood_fill(surface, start_pos, fill_color):
     x, y = start_pos
     if x < 0 or x >= WIDTH or y < 0 or y >= HEIGHT:
@@ -69,7 +62,6 @@ def flood_fill(surface, start_pos, fill_color):
     target_color = surface.get_at((x, y))
     if target_color == fill_color:
         return
-
     stack = [(x, y)]
     while stack:
         px, py = stack.pop()
@@ -77,11 +69,9 @@ def flood_fill(surface, start_pos, fill_color):
             continue
         if surface.get_at((px, py)) != target_color:
             continue
-
         surface.set_at((px, py), fill_color)
         stack += [(px+1,py),(px-1,py),(px,py+1),(px,py-1)]
 
-# сохранение
 def save_canvas():
     name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     pygame.image.save(canvas, f"paint_{name}.png")
@@ -92,26 +82,21 @@ while running:
     screen.fill(WHITE)
     screen.blit(canvas, (0, 0))
 
-    # рисуем кнопки цветов
     for rect, color in color_buttons:
         pygame.draw.rect(screen, color, rect)
         pygame.draw.rect(screen, BLACK, rect, 2)
 
-    # рисуем кнопки инструментов
     for rect, tool in tool_buttons:
         col = BLUE if tool == current_tool else GRAY
         pygame.draw.rect(screen, col, rect)
         pygame.draw.rect(screen, BLACK, rect, 2)
-
         txt = font.render(tool, True, BLACK)
         screen.blit(txt, (rect.x + 3, rect.y + 5))
 
-    # предпросмотр текста
     if text_mode and text_pos:
         txt = font.render(typed_text, True, current_color)
         screen.blit(txt, text_pos)
 
-    # предпросмотр фигур
     if drawing and start_pos:
         x1, y1 = start_pos
         x2, y2 = pygame.mouse.get_pos()
@@ -153,30 +138,47 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        # клавиатура
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                save_canvas()
 
-        # нажатие мыши
+            if text_mode:
+                if event.key == pygame.K_RETURN:
+                    txt = font.render(typed_text, True, current_color)
+                    canvas.blit(txt, text_pos)
+                    text_mode = False
+                    typed_text = ""
+                    text_pos = None
+
+                elif event.key == pygame.K_BACKSPACE:
+                    typed_text = typed_text[:-1]
+
+                elif event.key == pygame.K_ESCAPE:
+                    text_mode = False
+                    typed_text = ""
+                    text_pos = None
+
+                else:
+                    if event.unicode:
+                        typed_text += event.unicode
+
+            else:
+                if event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                    save_canvas()
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             clicked = False
 
-            # проверка цветов
             for rect, color in color_buttons:
                 if rect.collidepoint(event.pos):
                     current_color = color
                     clicked = True
                     break
 
-            # проверка инструментов
             for rect, tool in tool_buttons:
                 if rect.collidepoint(event.pos):
                     current_tool = tool
                     clicked = True
                     break
 
-            # если не кнопка — начинаем рисовать
             if not clicked:
                 start_pos = event.pos
                 prev_pos = event.pos
@@ -192,7 +194,6 @@ while running:
                     typed_text = ""
                     drawing = False
 
-        # движение мыши
         if event.type == pygame.MOUSEMOTION and drawing:
             if current_tool == "pencil":
                 pygame.draw.line(canvas, current_color, prev_pos, event.pos, brush_size)
@@ -202,7 +203,6 @@ while running:
                 pygame.draw.line(canvas, eraser_color, prev_pos, event.pos, brush_size)
                 prev_pos = event.pos
 
-        # отпустили мышь
         if event.type == pygame.MOUSEBUTTONUP and drawing:
             x1,y1 = start_pos
             x2,y2 = event.pos
